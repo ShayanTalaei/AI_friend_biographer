@@ -10,7 +10,7 @@ from agents.note_taker.prompts import get_prompt
 from agents.note_taker.tools import UpdateSessionNote, UpdateMemoryBank, AddHistoricalQuestion
 from agents.shared.memory_tools import Recall
 from agents.shared.note_tools import AddInterviewQuestion
-from agents.shared.feedback_prompts import SIMILAR_QUESTIONS_WARNING, WARNING_OUTPUT_FORMAT
+from agents.shared.feedback_prompts import SIMILAR_QUESTIONS_WARNING, PROCEED_WITH_WARNING_OUTPUT_FORMAT
 from content.question_bank.question import QuestionSearchResult, SimilarQuestionsGroup
 from utils.llm.prompt_utils import format_prompt
 from utils.llm.xml_formatter import extract_tool_arguments, extract_tool_calls_xml
@@ -181,15 +181,16 @@ class NoteTaker(BaseAgent, Participant):
                 content=response
             )
 
-            # Check if agent wants to proceed with similar questions
+            # Check if agent wants to proceed with previous tool calls
             if "<proceed>true</proceed>" in response.lower():
                 self.add_event(
                     sender=self.name,
-                    tag=f"feedback_loop_{iterations}",
-                    content="Agent chose to proceed with similar questions"
+                    tag=f"add_questions",
+                    content=f"<ToolCalls>{previous_tool_call}</ToolCalls>"
                 )
-                # Handle the tool calls to add questions
-                await self.handle_tool_calls_async(response)
+                # Execute the previous tool calls instead of the new response
+                if previous_tool_call:
+                    await self.handle_tool_calls_async(previous_tool_call)
                 break
 
             # Extract proposed questions from add_interview_question tool calls
@@ -306,8 +307,7 @@ class NoteTaker(BaseAgent, Participant):
             events = self.get_event_stream_str(filter=[
                 {"tag": "notes_lock_message"},
                 {"sender": self.name, "tag": "recall_response"},
-                *[{"tag": f"consider_and_propose_followups_response_{i}"} \
-                   for i in range(self._max_consideration_iterations)]
+                {"tag": "add_questions"}
             ], as_list=True)
 
             recent_events = events[-self._max_events_len:] if len(
@@ -334,7 +334,7 @@ class NoteTaker(BaseAgent, Participant):
                         .get_questions_and_notes_str()
                 ),
                 "similar_questions_warning": warning,
-                "warning_output_format": WARNING_OUTPUT_FORMAT \
+                "warning_output_format": PROCEED_WITH_WARNING_OUTPUT_FORMAT \
                                          if similar_questions else "",
                 "tool_descriptions": self.get_tools_description(
                     selected_tools=["recall", "add_interview_question"]

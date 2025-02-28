@@ -522,19 +522,17 @@ Follow the output format below to return your response:
 <output_format>
 <thinking>
 Your reasoning process on reflecting on the available information and deciding on the action to take.
-{warning_output_format}
 </thinking>
 
-
+{warning_output_format}
 <tool_calls>
-    <!-- Option 1: Use recall tool to gather more information -->
+    Choose ONE type of the following tool calls:
     <recall>
         <reasoning>...</reasoning>
         <query>...</query>
     </recall>
     ...
 
-    <!-- Option 2: Propose follow-up questions; leave empty tags if not proposing any -->
     <add_interview_question>
         <topic>Topic name</topic>
         <parent_id>ID of the parent question</parent_id>

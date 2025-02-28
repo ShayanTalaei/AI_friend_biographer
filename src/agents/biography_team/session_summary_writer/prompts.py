@@ -171,6 +171,7 @@ Don't include questions that are:
 {similar_questions_warning}
 
 <output_format>
+Follow the output format below to return your response:
 
 <thinking>
 Think step by step and write your thoughts here:
@@ -189,17 +190,16 @@ Questions to include:
    - [Question text] - Source: New creation to help start conversation
   - [Question text] - Source: Previous unanswered, highly relevant
    - [Question text] - Source: Follow-up, connects multiple topics
-
-{warning_output_format}
 </thinking>
 
+{warning_output_format}
 <tool_calls>
+Choose ONE type of the following tool calls:
     <recall>
         <reasoning>...</reasoning>
         <query>...</query>
-   </recall>
+    </recall>
    ...
-   <!-- Repeat for each recall search -->
 
     <add_interview_question>
         <topic>...</topic>
@@ -207,13 +207,6 @@ Questions to include:
         <question>Main question text...</question>
     </add_interview_question>
     ...
-    <add_interview_question>
-        <topic>...</topic>
-        <question_id>1.1</question_id>
-        <question>Sub-question text...</question>
-    </add_interview_question>
-    
-    <!-- Repeat for each question to add -->
 </tool_calls>
 
 Don't use other output format like markdown, json, code block, etc.

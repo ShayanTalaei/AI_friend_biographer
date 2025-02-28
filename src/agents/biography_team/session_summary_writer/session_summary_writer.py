@@ -8,7 +8,7 @@ from agents.biography_team.session_summary_writer.prompts import (
     TOPIC_EXTRACTION_PROMPT
 )
 from agents.biography_team.session_summary_writer.tools import UpdateLastMeetingSummary, UpdateUserPortrait, DeleteInterviewQuestion
-from agents.shared.feedback_prompts import SIMILAR_QUESTIONS_WARNING, WARNING_OUTPUT_FORMAT
+from agents.shared.feedback_prompts import SIMILAR_QUESTIONS_WARNING, PROCEED_WITH_WARNING_OUTPUT_FORMAT
 from content.memory_bank.memory import Memory
 from agents.biography_team.models import FollowUpQuestion
 from agents.shared.memory_tools import Recall
@@ -49,7 +49,8 @@ class SessionSummaryWriter(BiographyTeamAgent):
             # Question tools
             "add_interview_question": AddInterviewQuestion(
                 session_note=self._session_note,
-                historical_question_bank=self.interview_session.historical_question_bank,
+                historical_question_bank= \
+                    self.interview_session.historical_question_bank,
                 proposer="SessionSummaryWriter"
             ),
             "delete_interview_question": DeleteInterviewQuestion(
@@ -147,14 +148,16 @@ class SessionSummaryWriter(BiographyTeamAgent):
                 content=response
             )
 
-            # Check if agent wants to proceed with similar questions
+            # Check if agent wants to proceed with previous tool calls
             if "<proceed>true</proceed>" in response.lower():
                 self.add_event(
                     sender=self.name,
                     tag=f"feedback_loop_{iterations}",
-                    content="Agent chose to proceed with similar questions"
+                    content="Agent chose to proceed with previous questions"
                 )
-                await self.handle_tool_calls_async(response)
+                # Execute the previous tool calls instead of the new response
+                if previous_tool_call:
+                    await self.handle_tool_calls_async(previous_tool_call)
                 break
 
             # Extract proposed questions from add_interview_question tool calls
@@ -252,6 +255,7 @@ class SessionSummaryWriter(BiographyTeamAgent):
             ]),
             event_stream="\n".join(events[-10:]),
             similar_questions_warning=warning,
-            warning_output_format=WARNING_OUTPUT_FORMAT if similar_questions else "",
+            warning_output_format=PROCEED_WITH_WARNING_OUTPUT_FORMAT \
+                  if similar_questions else "",
             tool_descriptions=self.get_tools_description(question_tool_names)
         )

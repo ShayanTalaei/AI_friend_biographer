@@ -1,19 +1,19 @@
 SIMILAR_QUESTIONS_WARNING = """\
 <similar_questions_warning>
 
-## Warning
+## Warning: Question Similarity Detected
 
 Some of your proposed questions are similar to those previously asked.
 
-Previous Tool Calls:
+Previous Tool Call (Pending):
 <previous_tool_call>
 {previous_tool_call}
 </previous_tool_call>
 
 Similar Questions Already Asked:
-<similar_questions>
+<similar_asked_questions>
 {similar_questions}
-</similar_questions>
+</similar_asked_questions>
 
 ## Guidelines to Address the Warning
 
@@ -43,11 +43,17 @@ Examples of Good Variations:
 
 ## Action Required
 
-Choose ONE of the following actions:
-1. Regenerate New Tool Calls with Alternative Questions
-- Explain why these questions provide new insights beyond those already captured in `<thinking></thinking>`.
-- Add `<proceed>true</proceed>` at the end of your thinking tag to proceed with the regeneration.
-2. Leave Blank within `<tool_calls></tool_calls>` Tags if you do not wish to propose any follow-up questions.
+Required Action (Choose ONE):
+
+1. Generate Alternative Questions
+   - When: Previous questions are too similar to existing ones
+   - How: Provide new questions in <tool_calls></tool_calls>
+   - Note: Free to use Question IDs in previous tool calls since they are pending.
+
+2. Proceed with Original Questions
+   - When: Previous questions offer unique insights despite similarities
+   - How: Include <proceed>true</proceed> tag
+   - Note: Leave <tool_calls></tool_calls> empty
 
 </similar_questions_warning>
 """
@@ -77,7 +83,8 @@ Action Required:
 
 MISSING_MEMORIES_WARNING = """\
 <missing_memories_warning>
-Warning: Some memories from the interview session are not yet incorporated into the section content..
+## Warning (IMPORTANT!!!)
+Some memories from the interview session are not yet incorporated into the section content. 
 
 Previous tool calls that already have been executed:
 <previous_tool_call>
@@ -97,6 +104,15 @@ Action Required:
     * Memory is trivial or not relevant
 
 </missing_memories_warning>
+"""
+
+PROCEED_WITH_WARNING_OUTPUT_FORMAT = """
+Then choose ONE of the following options:
+
+Option 1: Proceed with warning by including the following tag:
+<proceed>true</proceed>
+
+Option 2: Address the warning by generating new tool calls to resolve the issues:
 """
 
 WARNING_OUTPUT_FORMAT = """
